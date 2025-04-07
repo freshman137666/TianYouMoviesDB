@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户详情</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .user-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        .user-info {
+            margin-bottom: 15px;
+        }
+        .user-info label {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 6px 12px;
+            margin-bottom: 0;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.42857143;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+        .btn-primary {
+            color: #fff;
+            background-color: #337ab7;
+            border-color: #2e6da4;
+        }
+        .btn-danger {
+            color: #fff;
+            background-color: #d9534f;
+            border-color: #d43f3a;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #3c763d;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+        .alert-danger {
+            color: #a94442;
+            background-color: #f2dede;
+            border-color: #ebccd1;
+        }
+    </style>
+</head>
+<body>
+    <h1>用户详情</h1>
+    
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    
+    <div class="user-card" th:if="${user != null}">
+        <div class="user-info">
+            <label>用户ID:</label>
+            <span th:text="${user.id}"></span>
+        </div>
+        <div class="user-info">
+            <label>用户名:</label>
+            <span th:text="${user.name}"></span>
+        </div>
+        
+        <div class="actions">
+            <a th:href="@{/users}" class="btn btn-primary">返回用户列表</a>
+            <form th:action="@{/users/{id}(id=${user.id})}" method="post" style="display: inline;">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除这个用户吗？')">删除用户</button>
+            </form>
+        </div>
+    </div>
+    
+    <div th:if="${user == null}">
+        <p>未找到用户信息</p>
+        <a th:href="@{/users}" class="btn btn-primary">返回用户列表</a>
+    </div>
+</body>
+</html>

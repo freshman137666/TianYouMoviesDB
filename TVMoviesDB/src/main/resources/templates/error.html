@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>错误</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #d9534f;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .error-card {
+            border: 1px solid #d9534f;
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        .error-message {
+            color: #d9534f;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 6px 12px;
+            margin-bottom: 0;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.42857143;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .btn-primary {
+            color: #fff;
+            background-color: #337ab7;
+            border-color: #2e6da4;
+        }
+    </style>
+</head>
+<body>
+    <h1>发生错误</h1>
+    
+    <div class="error-card">
+        <div class="error-message" th:text="${error}">错误信息</div>
+        <a th:href="@{/users}" class="btn btn-primary">返回用户列表</a>
+    </div>
+</body>
+</html>
