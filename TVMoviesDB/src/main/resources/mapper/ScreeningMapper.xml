@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mysqltext.mapper.ScreeningMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="ScreeningResultMap" type="com.example.mysqltext.model.Screening">
+        <id property="screeningId" column="screening_id"/>
+        <result property="movieId" column="movie_id"/>
+        <result property="hallId" column="hall_id"/>
+        <result property="screeningTime" column="screening_time"/>
+        <result property="ticketPrice" column="ticket_price"/>
+        <result property="seatRemain" column="seat_remain"/>
+    </resultMap>
+
+    <!-- 查询所有场次 -->
+    <select id="findAll" resultMap="ScreeningResultMap">
+        SELECT screening_id, movie_id, hall_id, screening_time, ticket_price, seat_remain
+        FROM Screening
+        ORDER BY screening_time
+    </select>
+
+    <!-- 根据ID查询场次 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="ScreeningResultMap">
+        SELECT screening_id, movie_id, hall_id, screening_time, ticket_price, seat_remain
+        FROM Screening
+        WHERE screening_id = #{screeningId}
+    </select>
+
+    <!-- 根据电影ID查询场次 -->
+    <select id="findByMovieId" parameterType="java.lang.Integer" resultMap="ScreeningResultMap">
+        SELECT screening_id, movie_id, hall_id, screening_time, ticket_price, seat_remain
+        FROM Screening
+        WHERE movie_id = #{movieId}
+        ORDER BY screening_time
+    </select>
+
+    <!-- 根据影厅ID查询场次 -->
+    <select id="findByHallId" parameterType="java.lang.Integer" resultMap="ScreeningResultMap">
+        SELECT screening_id, movie_id, hall_id, screening_time, ticket_price, seat_remain
+        FROM Screening
+        WHERE hall_id = #{hallId}
+        ORDER BY screening_time
+    </select>
+
+    <!-- 根据时间范围查询场次 -->
+    <select id="findByTimeRange" resultMap="ScreeningResultMap">
+        SELECT screening_id, movie_id, hall_id, screening_time, ticket_price, seat_remain
+        FROM Screening
+        WHERE screening_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY screening_time
+    </select>
+
+    <!-- 插入场次 -->
+    <insert id="save" parameterType="com.example.mysqltext.model.Screening" useGeneratedKeys="true" keyProperty="screeningId">
+        INSERT INTO Screening (movie_id, hall_id, screening_time, ticket_price, seat_remain)
+        VALUES (#{movieId}, #{hallId}, #{screeningTime}, #{ticketPrice}, #{seatRemain})
+    </insert>
+
+    <!-- 更新场次信息 -->
+    <update id="update" parameterType="com.example.mysqltext.model.Screening">
+        UPDATE Screening
+        SET movie_id = #{movieId},
+            hall_id = #{hallId},
+            screening_time = #{screeningTime},
+            ticket_price = #{ticketPrice},
+            seat_remain = #{seatRemain}
+        WHERE screening_id = #{screeningId}
+    </update>
+
+    <!-- 减少剩余座位数 -->
+    <update id="decreaseSeatRemain">
+        UPDATE Screening
+        SET seat_remain = seat_remain - #{count}
+        WHERE screening_id = #{screeningId} AND seat_remain >= #{count}
+    </update>
+
+    <!-- 删除场次 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM Screening WHERE screening_id = #{screeningId}
+    </delete>
+
+</mapper>

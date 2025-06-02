@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mysqltext.mapper.OrderMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="OrderResultMap" type="com.example.mysqltext.model.Order">
+        <id property="orderId" column="order_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="purchaseType" column="purchase_type"/>
+        <result property="screeningId" column="screening_id"/>
+        <result property="purchasedTicketId" column="purchased_ticket_id"/>
+        <result property="orderNumber" column="order_number"/>
+        <result property="orderTime" column="order_time"/>
+        <result property="status" column="status"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="bankCardNumber" column="bank_card_number"/>
+        <result property="costNumber" column="cost_number"/>
+        <result property="paymentAmount" column="payment_amount"/>
+        <result property="paymentTime" column="payment_time"/>
+        <result property="ticketStatus" column="ticket_status"/>
+    </resultMap>
+
+    <!-- 查询所有订单 -->
+    <select id="findAll" resultMap="OrderResultMap">
+        SELECT order_id, user_id, purchase_type, screening_id, purchased_ticket_id, 
+               order_number, order_time, status, payment_method, bank_card_number, 
+               cost_number, payment_amount, payment_time, ticket_status
+        FROM `Order`
+        ORDER BY order_time DESC
+    </select>
+
+    <!-- 根据ID查询订单 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="OrderResultMap">
+        SELECT order_id, user_id, purchase_type, screening_id, purchased_ticket_id, 
+               order_number, order_time, status, payment_method, bank_card_number, 
+               cost_number, payment_amount, payment_time, ticket_status
+        FROM `Order`
+        WHERE order_id = #{orderId}
+    </select>
+
+    <!-- 根据用户ID查询订单 -->
+    <select id="findByUserId" parameterType="java.lang.Integer" resultMap="OrderResultMap">
+        SELECT order_id, user_id, purchase_type, screening_id, purchased_ticket_id, 
+               order_number, order_time, status, payment_method, bank_card_number, 
+               cost_number, payment_amount, payment_time, ticket_status
+        FROM `Order`
+        WHERE user_id = #{userId}
+        ORDER BY order_time DESC
+    </select>
+
+    <!-- 根据订单号查询订单 -->
+    <select id="findByOrderNumber" parameterType="java.lang.String" resultMap="OrderResultMap">
+        SELECT order_id, user_id, purchase_type, screening_id, purchased_ticket_id, 
+               order_number, order_time, status, payment_method, bank_card_number, 
+               cost_number, payment_amount, payment_time, ticket_status
+        FROM `Order`
+        WHERE order_number = #{orderNumber}
+    </select>
+
+    <!-- 插入订单 -->
+    <insert id="save" parameterType="com.example.mysqltext.model.Order" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO `Order` (user_id, purchase_type, screening_id, purchased_ticket_id, 
+                           order_number, order_time, status, payment_method, 
+                           bank_card_number, cost_number, payment_amount, payment_time, ticket_status)
+        VALUES (#{userId}, #{purchaseType}, #{screeningId}, #{purchasedTicketId}, 
+                #{orderNumber}, #{orderTime}, #{status}, #{paymentMethod}, 
+                #{bankCardNumber}, #{costNumber}, #{paymentAmount}, #{paymentTime}, #{ticketStatus})
+    </insert>
+
+    <!-- 更新订单信息 -->
+    <update id="update" parameterType="com.example.mysqltext.model.Order">
+        UPDATE `Order`
+        SET user_id = #{userId},
+            purchase_type = #{purchaseType},
+            screening_id = #{screeningId},
+            purchased_ticket_id = #{purchasedTicketId},
+            order_number = #{orderNumber},
+            order_time = #{orderTime},
+            status = #{status},
+            payment_method = #{paymentMethod},
+            bank_card_number = #{bankCardNumber},
+            cost_number = #{costNumber},
+            payment_amount = #{paymentAmount},
+            payment_time = #{paymentTime},
+            ticket_status = #{ticketStatus}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 更新订单状态 -->
+    <update id="updateStatus">
+        UPDATE `Order`
+        SET status = #{status}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 更新票务状态 -->
+    <update id="updateTicketStatus">
+        UPDATE `Order`
+        SET ticket_status = #{ticketStatus}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 删除订单 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM `Order` WHERE order_id = #{orderId}
+    </delete>
+
+    <!-- 计算订单金额 -->
+    <select id="calculateOrderAmount" resultType="java.lang.Double">
+        SELECT s.ticket_price * #{seatCount}
+        FROM Screening s
+        WHERE s.screening_id = #{screeningId}
+    </select>
+
+    <!-- 创建订单并锁定座位 -->
+    <select id="createOrderWithSeats" resultType="java.util.HashMap">
+        CALL CreateOrderWithSeats(
+            #{order.userId},
+            #{order.screeningId},
+            #{order.purchaseType},
+            #{order.paymentMethod},
+            #{order.orderTime},
+            #{order.status},
+            #{order.ticketStatus},
+            #{order.paymentAmount},
+            #{seats,jdbcType=VARCHAR}
+        )
+    </select>
+
+    <!-- 处理支付 -->
+    <select id="processPayment" resultType="java.util.HashMap">
+        CALL ProcessOrderPayment(#{orderId}, #{paymentMethod})
+    </select>
+
+    <!-- 取消订单 -->
+    <select id="cancelOrder" resultType="java.util.HashMap">
+        CALL CancelOrderAndReleaseSeats(#{orderId})
+    </select>
+
+    <!-- 获取订单票券信息 -->
+    <select id="findOrderTickets" resultType="java.util.HashMap">
+        SELECT 
+            ot.ticket_id,
+            ot.order_id,
+            ot.seat_row,
+            ot.seat_column,
+            ot.verification_code,
+            ot.status as ticket_status,
+            o.order_number,
+            s.screening_time,
+            s.ticket_price,
+            m.title as movie_title,
+            c.name as cinema_name,
+            h.name as hall_name
+        FROM OrderTicket ot
+        JOIN `Order` o ON ot.order_id = o.order_id
+        JOIN Screening s ON o.screening_id = s.screening_id
+        JOIN Movie m ON s.movie_id = m.movie_id
+        JOIN Hall h ON s.hall_id = h.hall_id
+        JOIN Cinema c ON h.cinema_id = c.cinema_id
+        WHERE ot.order_id = #{orderId}
+        ORDER BY ot.seat_row, ot.seat_column
+    </select>
+
+</mapper>

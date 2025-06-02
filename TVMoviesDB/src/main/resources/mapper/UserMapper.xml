@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mysqltext.mapper.UserMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="UserResultMap" type="com.example.mysqltext.model.User">
+        <id property="userId" column="user_id"/>
+        <result property="password" column="password"/>
+        <result property="salt" column="salt"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="registerTime" column="register_time"/>
+        <result property="isAdmin" column="is_admin"/>
+    </resultMap>
+
+    <!-- 查询所有用户 -->
+    <select id="findAll" resultMap="UserResultMap">
+        SELECT user_id, password, salt, name, phone, email, register_time, is_admin
+        FROM User
+        ORDER BY register_time DESC
+    </select>
+
+    <!-- 根据ID查询用户 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="UserResultMap">
+        SELECT user_id, password, salt, name, phone, email, register_time, is_admin
+        FROM User
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据手机号查询用户 -->
+    <select id="findByPhone" parameterType="java.lang.String" resultMap="UserResultMap">
+        SELECT user_id, password, salt, name, phone, email, register_time, is_admin
+        FROM User
+        WHERE phone = #{phone}
+    </select>
+
+    <!-- 根据邮箱查询用户 -->
+    <select id="findByEmail" parameterType="java.lang.String" resultMap="UserResultMap">
+        SELECT user_id, password, salt, name, phone, email, register_time, is_admin
+        FROM User
+        WHERE email = #{email}
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="save" parameterType="com.example.mysqltext.model.User" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO User (password, salt, name, phone, email, register_time, is_admin)
+        VALUES (#{password}, #{salt}, #{name}, #{phone}, #{email}, #{registerTime}, #{isAdmin})
+    </insert>
+
+    <!-- 更新用户信息 -->
+    <update id="update" parameterType="com.example.mysqltext.model.User">
+        UPDATE User
+        SET password = #{password},
+            salt = #{salt},
+            name = #{name},
+            phone = #{phone},
+            email = #{email},
+            is_admin = #{isAdmin}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 删除用户 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM User WHERE user_id = #{userId}
+    </delete>
+
+</mapper>
