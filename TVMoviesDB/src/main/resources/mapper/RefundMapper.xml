@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mysqltext.mapper.RefundMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="RefundRecordResultMap" type="com.example.mysqltext.model.RefundRecord">
+        <id property="refundId" column="refund_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="refundAmount" column="refund_amount"/>
+        <result property="refundTime" column="refund_time"/>
+        <result property="refundMethod" column="refund_method"/>
+        <result property="bankCardNumber" column="bank_card_number"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!-- 查询所有退款记录 -->
+    <select id="findAll" resultMap="RefundRecordResultMap">
+        SELECT refund_id, order_id, refund_amount, refund_time, refund_method, 
+               bank_card_number, status
+        FROM RefundRecord
+        ORDER BY refund_time DESC
+    </select>
+
+    <!-- 根据ID查询退款记录 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="RefundRecordResultMap">
+        SELECT refund_id, order_id, refund_amount, refund_time, refund_method, 
+               bank_card_number, status
+        FROM RefundRecord
+        WHERE refund_id = #{refundId}
+    </select>
+
+    <!-- 根据订单ID查询退款记录 -->
+    <select id="findByOrderId" parameterType="java.lang.Integer" resultMap="RefundRecordResultMap">
+        SELECT refund_id, order_id, refund_amount, refund_time, refund_method, 
+               bank_card_number, status
+        FROM RefundRecord
+        WHERE order_id = #{orderId}
+        ORDER BY refund_time DESC
+    </select>
+
+    <!-- 插入退款记录 -->
+    <insert id="save" parameterType="com.example.mysqltext.model.RefundRecord" useGeneratedKeys="true" keyProperty="refundId">
+        INSERT INTO RefundRecord (order_id, refund_amount, refund_time, refund_method, 
+                                 bank_card_number, status)
+        VALUES (#{orderId}, #{refundAmount}, #{refundTime}, #{refundMethod}, 
+                #{bankCardNumber}, #{status})
+    </insert>
+
+    <!-- 更新退款记录 -->
+    <update id="update" parameterType="com.example.mysqltext.model.RefundRecord">
+        UPDATE RefundRecord
+        SET order_id = #{orderId},
+            refund_amount = #{refundAmount},
+            refund_time = #{refundTime},
+            refund_method = #{refundMethod},
+            bank_card_number = #{bankCardNumber},
+            status = #{status}
+        WHERE refund_id = #{refundId}
+    </update>
+
+    <!-- 删除退款记录 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM RefundRecord WHERE refund_id = #{refundId}
+    </delete>
+
+</mapper>

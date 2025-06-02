@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mysqltext.mapper.MovieMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="MovieResultMap" type="com.example.mysqltext.model.Movie">
+        <id property="movieId" column="movie_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="actors" column="actors"/>
+        <result property="director" column="director"/>
+        <result property="duration" column="duration"/>
+        <result property="releaseDate" column="release_date"/>
+        <result property="offShelfDate" column="off_shelf_date"/>
+        <result property="category" column="category"/>
+        <result property="rating" column="rating"/>
+        <result property="releaseRegion" column="release_region"/>
+        <result property="basePrice" column="base_price"/>
+    </resultMap>
+
+    <!-- 查询所有电影 -->
+    <select id="findAll" resultMap="MovieResultMap">
+        SELECT movie_id, title, description, actors, director, duration, 
+               release_date, off_shelf_date, category, rating, release_region, base_price
+        FROM Movie
+        ORDER BY release_date DESC
+    </select>
+
+    <!-- 根据ID查询电影 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="MovieResultMap">
+        SELECT movie_id, title, description, actors, director, duration, 
+               release_date, off_shelf_date, category, rating, release_region, base_price
+        FROM Movie
+        WHERE movie_id = #{movieId}
+    </select>
+
+    <!-- 根据标题搜索电影 -->
+    <select id="findByTitle" parameterType="java.lang.String" resultMap="MovieResultMap">
+        SELECT movie_id, title, description, actors, director, duration, 
+               release_date, off_shelf_date, category, rating, release_region, base_price
+        FROM Movie
+        WHERE title LIKE CONCAT('%', #{title}, '%')
+        ORDER BY release_date DESC
+    </select>
+
+    <!-- 根据类别搜索电影 -->
+    <select id="findByCategory" parameterType="java.lang.String" resultMap="MovieResultMap">
+        SELECT movie_id, title, description, actors, director, duration, 
+               release_date, off_shelf_date, category, rating, release_region, base_price
+        FROM Movie
+        WHERE category = #{category}
+        ORDER BY release_date DESC
+    </select>
+
+    <!-- 查询当前上映的电影 -->
+    <select id="findCurrentMovies" resultMap="MovieResultMap">
+        SELECT movie_id, title, description, actors, director, duration, 
+               release_date, off_shelf_date, category, rating, release_region, base_price
+        FROM Movie
+        WHERE release_date &lt;= CURDATE() AND (off_shelf_date IS NULL OR off_shelf_date &gt;= CURDATE())
+        ORDER BY release_date DESC
+    </select>
+
+    <!-- 插入电影 -->
+    <insert id="save" parameterType="com.example.mysqltext.model.Movie" useGeneratedKeys="true" keyProperty="movieId">
+        INSERT INTO Movie (title, description, actors, director, duration, release_date, 
+                          off_shelf_date, category, rating, release_region, base_price)
+        VALUES (#{title}, #{description}, #{actors}, #{director}, #{duration}, #{releaseDate}, 
+                #{offShelfDate}, #{category}, #{rating}, #{releaseRegion}, #{basePrice})
+    </insert>
+
+    <!-- 更新电影信息 -->
+    <update id="update" parameterType="com.example.mysqltext.model.Movie">
+        UPDATE Movie
+        SET title = #{title},
+            description = #{description},
+            actors = #{actors},
+            director = #{director},
+            duration = #{duration},
+            release_date = #{releaseDate},
+            off_shelf_date = #{offShelfDate},
+            category = #{category},
+            rating = #{rating},
+            release_region = #{releaseRegion},
+            base_price = #{basePrice}
+        WHERE movie_id = #{movieId}
+    </update>
+
+    <!-- 删除电影 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM Movie WHERE movie_id = #{movieId}
+    </delete>
+
+</mapper>
