@@ -3,7 +3,7 @@ package com.example.mysqltext.service;
 import com.example.mysqltext.mapper.MembershipMapper;
 import com.example.mysqltext.model.User;
 import com.example.mysqltext.repository.UserRepository;
-import com.example.mysqltext.util.PasswordUtil;
+// import com.example.mysqltext.util.PasswordUtil; // 暂时注释掉加密工具
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,18 +95,20 @@ public class UserService {
         }
     }
 
-    // 用户登录验证
+    // 用户登录验证（简化版：直接字符串匹配）
     public User login(String phone, String password) {
         try {
             User user = userRepository.findByPhone(phone);
-            if (user != null && user.getSalt() != null &&
-                    PasswordUtil.verifyPassword(password, user.getSalt(), user.getPassword())) {
+            if (user != null && password.equals(user.getPassword())) {
+                logger.info("用户登录成功: {}", phone);
                 return user;
             }
+            logger.warn("用户登录失败 - 用户名或密码错误: {}", phone);
             return null;
         } catch (Exception e) {
-            logger.error("用户登录验证时发生错误", e);
-            throw new RuntimeException("登录验证失败: " + e.getMessage());
+            logger.error("用户登录验证时发生数据库错误: {}", e.getMessage(), e);
+            // 返回null而不是抛出异常，让Controller层处理
+            return null;
         }
     }
 
@@ -213,14 +215,12 @@ public class UserService {
             }
 
             // 验证旧密码
-            if (!PasswordUtil.verifyPassword(oldPassword, user.getSalt(), user.getPassword())) {
+            if (!oldPassword.equals(user.getPassword())) {
                 return false;
             }
 
-            // 加密新密码
-            String[] encryptedData = PasswordUtil.encryptPassword(newPassword);
-            user.setSalt(encryptedData[0]);
-            user.setPassword(encryptedData[1]);
+            // 直接设置新密码
+            user.setPassword(newPassword);
 
             int result = userRepository.update(user);
             return result > 0;

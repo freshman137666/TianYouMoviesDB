@@ -42,12 +42,11 @@ CREATE TABLE IF NOT EXISTS `User` (
     user_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '用户ID',
     name VARCHAR(50) NOT NULL COMMENT '用户名',
     phone VARCHAR(20) NOT NULL UNIQUE COMMENT '手机号',
-    password VARCHAR(100) NOT NULL CHECK (
-        password REGEXP '^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{8,100}$'
-    ) COMMENT '密码，需含数字、字母、特殊字符，最小8位',
+    password VARCHAR(100) NOT NULL COMMENT '密码（简化版，暂时无复杂约束）',
     email VARCHAR(100) NOT NULL UNIQUE COMMENT '邮箱',
     register_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
-    is_admin TINYINT(1) DEFAULT 0 COMMENT '是否管理员（0:普通用户, 1:管理员）',
+    admin_type ENUM('NONE', 'SYSTEM', 'CINEMA') NOT NULL DEFAULT 'NONE' COMMENT '管理员类型（NONE:普通用户, SYSTEM:系统管理员, CINEMA:影院管理员）',
+    managed_cinema_id INT NULL COMMENT '管理的影院ID（仅对影院管理员有效）',
     INDEX idx_user_phone (phone)
 ) COMMENT = '用户表';
 -- 5. 会员表

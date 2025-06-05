@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Eye, EyeOff, Phone, Lock, User, Mail } from 'lucide-react'
+import { register } from '@/lib/auth'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -83,16 +84,7 @@ export default function RegisterPage() {
 
     try {
       const { confirmPassword, ...submitData } = formData
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
-        credentials: 'include'
-      })
-
-      const data = await response.json()
+      const data = await register(submitData)
 
       if (data.success) {
         setMessage('注册成功！即将跳转到登录页面...')

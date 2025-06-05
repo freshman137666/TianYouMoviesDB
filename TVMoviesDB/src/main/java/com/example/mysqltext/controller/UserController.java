@@ -75,7 +75,7 @@ public class UserController {
                 }
 
                 // 验证当前密码
-                if (!PasswordUtil.verifyPassword(currentPassword, currentUser.getSalt(), currentUser.getPassword())) {
+                if (!currentPassword.equals(currentUser.getPassword())) {
                     response.put("success", false);
                     response.put("message", "当前密码错误");
                     return ResponseEntity.badRequest().body(response);
@@ -219,16 +219,14 @@ public class UserController {
             }
 
             // 验证当前密码
-            if (!PasswordUtil.verifyPassword(currentPassword, currentUser.getSalt(), currentUser.getPassword())) {
+            if (!currentPassword.equals(currentUser.getPassword())) {
                 response.put("success", false);
                 response.put("message", "当前密码错误");
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // 加密新密码
-            String[] encryptedData = PasswordUtil.encryptPassword(newPassword);
-            currentUser.setSalt(encryptedData[0]);
-            currentUser.setPassword(encryptedData[1]);
+            // 直接设置新密码
+            currentUser.setPassword(newPassword);
 
             int result = userService.updateUser(currentUser);
 

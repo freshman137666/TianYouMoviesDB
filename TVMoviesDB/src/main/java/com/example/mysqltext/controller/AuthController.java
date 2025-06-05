@@ -2,7 +2,8 @@ package com.example.mysqltext.controller;
 
 import com.example.mysqltext.model.User;
 import com.example.mysqltext.service.UserService;
-import com.example.mysqltext.util.PasswordUtil;
+// import com.example.mysqltext.util.PasswordUtil; // 暂时注释掉加密工具
+import com.example.mysqltext.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * 用户注册
@@ -78,12 +82,13 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // 加密密码
-            String[] encryptedData = PasswordUtil.encryptPassword(user.getPassword());
-            user.setSalt(encryptedData[0]);
-            user.setPassword(encryptedData[1]);
+            // 简化版：直接使用明文密码（暂时）
+            // String[] encryptedData = PasswordUtil.encryptPassword(user.getPassword());
+            // user.setSalt(encryptedData[0]);
+            // user.setPassword(encryptedData[1]);
             user.setRegisterTime(LocalDateTime.now());
-            user.setIsAdmin(false);
+            user.setAdminType(User.AdminType.NONE);
+            user.setManagedCinemaId(null);
 
             // 注册用户
             int result = userService.registerUser(user);
@@ -120,13 +125,16 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String phone = loginRequest.get("phone");
+            String username = loginRequest.get("phone"); // 使用phone参数替代username
+            if (username == null) {
+                username = loginRequest.get("username"); // 兼容旧版本
+            }
             String password = loginRequest.get("password");
 
             // 验证必填字段
-            if (phone == null || phone.trim().isEmpty()) {
+            if (username == null || username.trim().isEmpty()) {
                 response.put("success", false);
-                response.put("message", "手机号不能为空");
+                response.put("message", "手机号或邮箱不能为空");
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -136,12 +144,27 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // 验证登录
-            User user = userService.login(phone, password);
+            // 验证用户
+            User user = null;
+            if (username.matches("^1[3-9]\\d{9}$")) {
+                // 手机号登录
+                user = userService.login(username, password);
+            } else if (username.contains("@")) {
+                // 邮箱登录
+                User emailUser = userService.getUserByEmail(username);
+                if (emailUser != null
+                        && password.equals(emailUser.getPassword())) {
+                    user = emailUser;
+                }
+            }
 
             if (user != null) {
+                // 生成JWT token
+                String token = jwtUtil.generateToken(username, user.getUserId());
+
                 response.put("success", true);
                 response.put("message", "登录成功");
+                response.put("token", token);
 
                 // 返回用户信息（不包含密码）
                 Map<String, Object> userInfo = new HashMap<>();
@@ -149,14 +172,16 @@ public class AuthController {
                 userInfo.put("name", user.getName());
                 userInfo.put("phone", user.getPhone());
                 userInfo.put("email", user.getEmail());
-                userInfo.put("isAdmin", user.getIsAdmin());
+                userInfo.put("adminType", user.getAdminType().toString());
+                userInfo.put("managedCinemaId", user.getManagedCinemaId());
                 userInfo.put("registerTime", user.getRegisterTime());
 
                 response.put("user", userInfo);
+                logger.info("用户登录成功: {}", username);
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);
-                response.put("message", "手机号或密码错误");
+                response.put("message", "用户名或密码错误");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
@@ -225,6 +250,42 @@ public class AuthController {
             response.put("available", false);
             response.put("message", "检查失败，请稍后重试");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * 验证token有效性
+     */
+    @PostMapping("/validate")
+    public ResponseEntity<Map<String, Object>> validateToken(@RequestHeader("Authorization") String token) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (token != null && token.startsWith("Bearer ")) {
+                String jwtToken = token.substring(7);
+
+                if (jwtUtil.isTokenValid(jwtToken)) {
+                    String username = jwtUtil.getUsernameFromToken(jwtToken);
+                    Integer userId = jwtUtil.getUserIdFromToken(jwtToken);
+
+                    response.put("success", true);
+                    response.put("message", "Token有效");
+                    response.put("username", username);
+                    response.put("userId", userId);
+
+                    return ResponseEntity.ok(response);
+                }
+            }
+
+            response.put("success", false);
+            response.put("message", "Token无效或已过期");
+            return ResponseEntity.badRequest().body(response);
+
+        } catch (Exception e) {
+            logger.error("验证token失败: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "验证失败: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 }

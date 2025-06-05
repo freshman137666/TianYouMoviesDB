@@ -11,10 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Eye, EyeOff, Phone, Lock } from 'lucide-react'
+import { login } from '@/lib/auth'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    phone: '',
+    username: '', // 支持手机号或邮箱，将作为phone字段发送到后端
     password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
@@ -26,11 +27,15 @@ export default function LoginPage() {
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {}
 
-    // 手机号验证
-    if (!formData.phone) {
-      newErrors.phone = '请输入手机号'
-    } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
-      newErrors.phone = '请输入有效的手机号'
+    // 用户名验证（手机号或邮箱）
+    if (!formData.username) {
+      newErrors.username = '请输入手机号或邮箱'
+    } else {
+      const isPhone = /^1[3-9]\d{9}$/.test(formData.username)
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username)
+      if (!isPhone && !isEmail) {
+        newErrors.username = '请输入有效的手机号或邮箱地址'
+      }
     }
 
     // 密码验证
@@ -55,21 +60,10 @@ export default function LoginPage() {
     setMessage('')
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-        credentials: 'include'
-      })
-
-      const data = await response.json()
+      const data = await login(formData.username, formData.password)
 
       if (data.success) {
         setMessage('登录成功！')
-        // 存储用户信息到localStorage
-        localStorage.setItem('user', JSON.stringify(data.user))
         // 跳转到首页
         setTimeout(() => {
           router.push('/')
@@ -118,21 +112,21 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">手机号</Label>
+                <Label htmlFor="username">手机号/邮箱</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="请输入手机号"
-                    value={formData.phone}
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="请输入手机号或邮箱"
+                    value={formData.username}
                     onChange={handleInputChange}
-                    className={`pl-10 ${errors.phone ? 'border-red-500' : ''}`}
+                    className={`pl-10 ${errors.username ? 'border-red-500' : ''}`}
                   />
                 </div>
-                {errors.phone && (
-                  <p className="text-sm text-red-500">{errors.phone}</p>
+                {errors.username && (
+                  <p className="text-sm text-red-500">{errors.username}</p>
                 )}
               </div>
               <div className="space-y-2">

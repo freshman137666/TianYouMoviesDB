@@ -96,19 +96,11 @@ CREATE PROCEDURE SP_Validate_Password(
     IN p_password VARCHAR(100),
     OUT is_valid BOOLEAN,
     OUT error_message VARCHAR(255)
-) proc_label: BEGIN IF p_password IS NULL
-OR LENGTH(p_password) < 8 THEN
+) proc_label: BEGIN -- 简化版密码验证：只检查是否为空和最小长度
+IF p_password IS NULL
+OR LENGTH(p_password) < 1 THEN
 SET is_valid = FALSE;
-SET error_message = '密码长度至少8位';
-ELSEIF p_password NOT REGEXP '.*[0-9].*' THEN
-SET is_valid = FALSE;
-SET error_message = '密码必须包含数字';
-ELSEIF p_password NOT REGEXP '.*[a-zA-Z].*' THEN
-SET is_valid = FALSE;
-SET error_message = '密码必须包含字母';
-ELSEIF p_password NOT REGEXP '.*[!@#$%^&*].*' THEN
-SET is_valid = FALSE;
-SET error_message = '密码必须包含特殊字符';
+SET error_message = '密码不能为空';
 ELSE
 SET is_valid = TRUE;
 SET error_message = NULL;
@@ -293,7 +285,7 @@ END IF;
 INSERT INTO `User` (username, password, phone, email, register_time)
 VALUES (
         TRIM(p_username),
-        SHA2(p_password, 256),
+        p_password,
         p_phone,
         p_email,
         NOW()
@@ -375,8 +367,8 @@ SET result_msg = '手机号或密码错误';
 SET data = NULL;
 LEAVE proc_label;
 END IF;
--- 验证密码（使用SHA2加密）
-IF v_stored_password != SHA2(p_password, 256) THEN
+-- 验证密码（简化版：直接字符串匹配）
+IF v_stored_password != p_password THEN
 SET result_code = -1;
 SET result_msg = '手机号或密码错误';
 SET data = NULL;
@@ -553,14 +545,14 @@ SELECT password,
 FROM `User`
 WHERE user_id = p_user_id FOR
 UPDATE;
-IF v_stored_password != SHA2(p_old_password, 256) THEN
+IF v_stored_password != p_old_password THEN
 SET result_code = -1;
 SET result_msg = '原密码错误';
 SET data = NULL;
 LEAVE proc_label;
 END IF;
 -- 检查新密码是否与原密码相同
-IF SHA2(p_new_password, 256) = v_stored_password THEN
+IF p_new_password = v_stored_password THEN
 SET result_code = -1;
 SET result_msg = '新密码不能与原密码相同';
 SET data = NULL;
@@ -568,7 +560,7 @@ LEAVE proc_label;
 END IF;
 -- 更新密码
 UPDATE `User`
-SET password = SHA2(p_new_password, 256)
+SET password = p_new_password
 WHERE user_id = p_user_id;
 -- 返回成功结果
 SET result_code = 0;
@@ -637,7 +629,7 @@ SELECT password,
 FROM `User`
 WHERE user_id = p_user_id FOR
 UPDATE;
-IF v_stored_password != SHA2(p_password, 256) THEN
+IF v_stored_password != p_password THEN
 SET result_code = -1;
 SET result_msg = '密码错误';
 SET data = NULL;
@@ -1410,7 +1402,7 @@ SELECT password INTO stored_password
 FROM `User`
 WHERE user_id = p_user_id FOR
 UPDATE;
-IF SHA2(p_password, 256) != stored_password THEN
+IF p_password != stored_password THEN
 SET result_code = -1;
 SET result_msg = '密码错误';
 SET data = NULL;

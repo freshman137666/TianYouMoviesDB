@@ -1,16 +1,47 @@
 package com.example.mysqltext.model;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class User {
+    public enum AdminType {
+        NONE("none"), CINEMA("cinema"), SYSTEM("system");
+
+        private final String value;
+
+        AdminType(String value) {
+            this.value = value;
+        }
+
+        @JsonValue
+        public String getValue() {
+            return value;
+        }
+
+        @JsonCreator
+        public static AdminType fromValue(String value) {
+            if (value == null) {
+                return NONE;
+            }
+            for (AdminType type : AdminType.values()) {
+                if (type.value.equalsIgnoreCase(value)) {
+                    return type;
+                }
+            }
+            return NONE; // 默认返回NONE而不是抛出异常
+        }
+
+    }
+
     private Integer userId;
     private String password;
-    private String salt;
     private String name;
     private String phone;
     private String email;
     private LocalDateTime registerTime;
-    private Boolean isAdmin;
+    private AdminType adminType;
+    private Integer managedCinemaId;
 
     // 构造方法
     public User() {
@@ -22,7 +53,7 @@ public class User {
         this.phone = phone;
         this.email = email;
         this.registerTime = LocalDateTime.now();
-        this.isAdmin = false;
+        this.adminType = AdminType.NONE;
     }
 
     // Getter 和 Setter
@@ -39,9 +70,8 @@ public class User {
     }
 
     public void setPassword(String password) {
-        if (!isValidPassword(password)) {
-            throw new IllegalArgumentException("密码必须包含数字、字母和特殊字符");
-        }
+        // 直接设置密码，不进行验证
+        // 注册时会在Controller层进行验证
         this.password = password;
     }
 
@@ -91,14 +121,6 @@ public class User {
         return hasDigit && hasLetter && hasSpecial;
     }
 
-    public String getSalt() {
-        return salt;
-    }
-
-    public void setSalt(String salt) {
-        this.salt = salt;
-    }
-
     public String getName() {
         return name;
     }
@@ -131,12 +153,29 @@ public class User {
         this.registerTime = registerTime;
     }
 
+    public AdminType getAdminType() {
+        return adminType;
+    }
+
+    public void setAdminType(AdminType adminType) {
+        this.adminType = adminType;
+    }
+
+    public Integer getManagedCinemaId() {
+        return managedCinemaId;
+    }
+
+    public void setManagedCinemaId(Integer managedCinemaId) {
+        this.managedCinemaId = managedCinemaId;
+    }
+
+    // 兼容性方法
     public Boolean getIsAdmin() {
-        return isAdmin;
+        return adminType != AdminType.NONE;
     }
 
     public void setIsAdmin(Boolean isAdmin) {
-        this.isAdmin = isAdmin;
+        this.adminType = (isAdmin != null && isAdmin) ? AdminType.SYSTEM : AdminType.NONE;
     }
 
     @Override
@@ -147,7 +186,8 @@ public class User {
                 ", phone='" + phone + '\'' +
                 ", email='" + email + '\'' +
                 ", registerTime=" + registerTime +
-                ", isAdmin=" + isAdmin +
+                ", adminType=" + adminType +
+                ", managedCinemaId=" + managedCinemaId +
                 '}';
     }
 }
