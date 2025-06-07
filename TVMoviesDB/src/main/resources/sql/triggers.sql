@@ -309,7 +309,7 @@ SET MESSAGE_TEXT = error_msg;
 END IF;
 -- 验证基础价格
 IF NEW.base_price IS NULL
-OR NEW.base_price <= 0
+OR NEW.base_price < 0.01
 OR NEW.base_price > 1000 THEN
 SET error_msg = '基础价格必须在0.01-1000元之间';
 SIGNAL SQLSTATE '45000'
@@ -410,7 +410,7 @@ END IF;
 END IF;
 -- 验证基础价格
 IF NEW.base_price IS NULL
-OR NEW.base_price <= 0
+OR NEW.base_price < 0.01
 OR NEW.base_price > 1000 THEN
 SET error_msg = '基础价格必须在0.01-1000元之间';
 SIGNAL SQLSTATE '45000'

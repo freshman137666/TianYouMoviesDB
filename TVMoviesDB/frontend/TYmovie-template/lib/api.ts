@@ -16,7 +16,7 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
 
   // 添加认证token（如果存在）
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("authToken")
+    const token = localStorage.getItem("token")
     if (token) {
       defaultOptions.headers = {
         ...defaultOptions.headers,

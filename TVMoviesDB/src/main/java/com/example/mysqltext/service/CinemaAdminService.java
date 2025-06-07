@@ -4,6 +4,7 @@ import com.example.mysqltext.model.Cinema;
 import com.example.mysqltext.model.Hall;
 import com.example.mysqltext.model.Screening;
 import com.example.mysqltext.mapper.CinemaMapper;
+import com.example.mysqltext.mapper.HallMapper;
 import com.example.mysqltext.mapper.ScreeningMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,9 @@ public class CinemaAdminService {
 
     @Autowired
     private CinemaMapper cinemaMapper;
+
+    @Autowired
+    private HallMapper hallMapper;
 
     @Autowired
     private ScreeningMapper screeningMapper;
@@ -92,8 +96,7 @@ public class CinemaAdminService {
             // 设置ID并更新
             cinemaData.setCinemaId(cinemaId);
 
-            // TODO: 实现实际的更新逻辑
-            // cinemaMapper.update(cinemaData);
+            cinemaMapper.update(cinemaData);
 
             logger.info("影院信息更新成功，影院ID：{}", cinemaId);
             return true;
@@ -126,8 +129,7 @@ public class CinemaAdminService {
             }
 
             // TODO: 实现实际的影厅查询逻辑
-            // List<Hall> halls = hallMapper.findByCinemaId(cinemaId);
-            List<Hall> halls = List.of(); // 临时返回空列表
+            List<Hall> halls = hallMapper.findByCinemaId(cinemaId);
 
             logger.info("获取影厅列表成功，影院ID：{}，影厅数量：{}", cinemaId, halls.size());
             return halls;
@@ -166,15 +168,13 @@ public class CinemaAdminService {
             validateHallData(hallData);
 
             // 设置影院ID
-            // hallData.setCinemaId(cinemaId);
+            hallData.setCinemaId(cinemaId);
 
             // TODO: 实现实际的影厅创建逻辑
-            // Integer hallId = hallMapper.insert(hallData);
+            Integer hallId = hallMapper.insert(hallData);
             //
             // // 初始化座位配置
             // initializeHallSeats(hallId, hallData.getRowCount(), hallData.getColCount());
-
-            Integer hallId = 1; // 临时返回值
 
             logger.info("影厅添加成功，影院ID：{}，影厅ID：{}", cinemaId, hallId);
             return hallId;
@@ -204,10 +204,10 @@ public class CinemaAdminService {
             // 4. 如果座位配置有变化，更新座位布局
 
             // 验证归属关系
-            // Hall existingHall = hallMapper.findById(hallId);
-            // if (existingHall == null || !existingHall.getCinemaId().equals(cinemaId)) {
-            // throw new RuntimeException("影厅不存在或不属于该影院");
-            // }
+            Hall existingHall = hallMapper.findById(hallId);
+            if (existingHall == null || !existingHall.getCinemaId().equals(cinemaId)) {
+                throw new RuntimeException("影厅不存在或不属于该影院");
+            }
 
             // 验证影厅数据
             validateHallData(hallData);
@@ -218,11 +218,11 @@ public class CinemaAdminService {
             // }
 
             // 设置ID并更新
-            // hallData.setHallId(hallId);
-            // hallData.setCinemaId(cinemaId);
+            hallData.setHallId(hallId);
+            hallData.setCinemaId(cinemaId);
 
             // TODO: 实现实际的更新逻辑
-            // hallMapper.update(hallData);
+            hallMapper.update(hallData);
 
             logger.info("影厅信息更新成功，影院ID：{}，影厅ID：{}", cinemaId, hallId);
             return true;
@@ -250,10 +250,10 @@ public class CinemaAdminService {
             // 3. 删除影厅及相关数据
 
             // 验证归属关系
-            // Hall existingHall = hallMapper.findById(hallId);
-            // if (existingHall == null || !existingHall.getCinemaId().equals(cinemaId)) {
-            // throw new RuntimeException("影厅不存在或不属于该影院");
-            // }
+            Hall existingHall = hallMapper.findById(hallId);
+            if (existingHall == null || !existingHall.getCinemaId().equals(cinemaId)) {
+                throw new RuntimeException("影厅不存在或不属于该影院");
+            }
 
             // TODO: 检查是否有未完成的场次
             // if (hasFutureScreenings(hallId)) {
@@ -261,7 +261,7 @@ public class CinemaAdminService {
             // }
 
             // TODO: 删除影厅及相关数据
-            // hallMapper.deleteById(hallId);
+            hallMapper.deleteById(hallId);
 
             logger.info("影厅删除成功，影院ID：{}，影厅ID：{}", cinemaId, hallId);
             return true;
@@ -649,19 +649,20 @@ public class CinemaAdminService {
 
     /**
      * 验证影厅数据
-     * TODO: 实现影厅数据验证逻辑
      */
     private void validateHallData(Hall hallData) {
         if (hallData == null) {
             throw new IllegalArgumentException("影厅数据不能为空");
         }
-        // TODO: 添加影厅数据验证逻辑
-        // if (hallData.getName() == null || hallData.getName().trim().isEmpty()) {
-        // throw new IllegalArgumentException("影厅名称不能为空");
-        // }
-        // if (hallData.getRowCount() <= 0 || hallData.getColCount() <= 0) {
-        // throw new IllegalArgumentException("座位行列数必须大于0");
-        // }
+        if (hallData.getName() == null || hallData.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("影厅名称不能为空");
+        }
+        if (hallData.getCapacity() == null || hallData.getCapacity() <= 0) {
+            throw new IllegalArgumentException("座位数量必须大于0");
+        }
+        if (hallData.getType() == null || hallData.getType().trim().isEmpty()) {
+            throw new IllegalArgumentException("影厅类型不能为空");
+        }
     }
 
     /**

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mysqltext.mapper.HallMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="HallResultMap" type="com.example.mysqltext.model.Hall">
+        <id property="hallId" column="hall_id"/>
+        <result property="name" column="hall_name"/>
+        <result property="cinemaId" column="cinema_id"/>
+        <result property="capacity" column="seat_count"/>
+        <result property="type" column="hall_type"/>
+    </resultMap>
+
+    <!-- 根据影院ID查询影厅列表 -->
+    <select id="findByCinemaId" parameterType="java.lang.Integer" resultMap="HallResultMap">
+        SELECT hall_id, hall_name, cinema_id, seat_count, hall_type
+        FROM Hall
+        WHERE cinema_id = #{cinemaId}
+        ORDER BY hall_name
+    </select>
+
+    <!-- 根据ID查询影厅 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="HallResultMap">
+        SELECT hall_id, hall_name, cinema_id, seat_count, hall_type
+        FROM Hall
+        WHERE hall_id = #{hallId}
+    </select>
+
+    <!-- 插入影厅 -->
+    <insert id="insert" parameterType="com.example.mysqltext.model.Hall" useGeneratedKeys="true" keyProperty="hallId">
+        INSERT INTO Hall (hall_name, cinema_id, seat_count, hall_type)
+        VALUES (#{name}, #{cinemaId}, #{capacity}, #{type})
+    </insert>
+
+    <!-- 更新影厅信息 -->
+    <update id="update" parameterType="com.example.mysqltext.model.Hall">
+        UPDATE Hall
+        SET hall_name = #{name},
+            cinema_id = #{cinemaId},
+            seat_count = #{capacity},
+            hall_type = #{type}
+        WHERE hall_id = #{hallId}
+    </update>
+
+    <!-- 删除影厅 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM Hall WHERE hall_id = #{hallId}
+    </delete>
+
+    <!-- 查询所有影厅 -->
+    <select id="findAll" resultMap="HallResultMap">
+        SELECT hall_id, hall_name, cinema_id, seat_count, hall_type
+        FROM Hall
+        ORDER BY cinema_id, hall_name
+    </select>
+
+</mapper>

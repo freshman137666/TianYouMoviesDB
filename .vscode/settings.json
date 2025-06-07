@@ -1,4 +1,8 @@
 {
+<<<<<<< HEAD
     "java.configuration.updateBuildConfiguration": "disabled",
     "java.compile.nullAnalysis.mode": "disabled"
+=======
+    "java.configuration.updateBuildConfiguration": "disabled"
+>>>>>>> 8b169b3ffb4ca9cb8243598dd3d0f2baeda26521
 }

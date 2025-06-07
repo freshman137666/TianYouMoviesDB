@@ -89,6 +89,39 @@ public class JwtUtil {
     }
 
     /**
+     * 为用户生成包含角色信息的token
+     */
+    public String generateTokenWithRoles(String username, Integer userId,
+            com.example.mysqltext.model.User.AdminType adminType) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+
+        // 添加角色信息
+        java.util.List<String> roles = new java.util.ArrayList<>();
+        roles.add("ROLE_USER");
+
+        if (adminType != null) {
+            switch (adminType) {
+                case SYSTEM:
+                    roles.add("ROLE_ADMIN");
+                    roles.add("ROLE_SYSTEM_ADMIN");
+                    break;
+                case CINEMA:
+                    roles.add("ROLE_ADMIN");
+                    roles.add("ROLE_CINEMA_ADMIN");
+                    break;
+                case NONE:
+                default:
+                    // 普通用户不添加额外角色
+                    break;
+            }
+        }
+
+        claims.put("roles", roles);
+        return createToken(claims, username);
+    }
+
+    /**
      * 创建token
      */
     private String createToken(Map<String, Object> claims, String subject) {
@@ -124,6 +157,20 @@ public class JwtUtil {
         } catch (Exception e) {
             logger.error("从JWT token获取用户ID失败: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * 从token中获取用户角色
+     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> getRolesFromToken(String token) {
+        try {
+            Claims claims = getAllClaimsFromToken(token);
+            return (java.util.List<String>) claims.get("roles");
+        } catch (Exception e) {
+            logger.error("从JWT token获取角色信息失败: {}", e.getMessage());
+            return new java.util.ArrayList<>();
         }
     }
 

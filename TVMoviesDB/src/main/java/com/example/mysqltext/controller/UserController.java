@@ -34,6 +34,53 @@ public class UserController {
     private GroupTicketService groupTicketService;
 
     /**
+     * 获取用户配置信息
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getProfile(@RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String email) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 查找用户
+            User currentUser = null;
+            if (userId != null) {
+                currentUser = userService.getUserById(userId);
+            } else if (phone != null) {
+                currentUser = userService.findByPhone(phone);
+            } else if (email != null) {
+                currentUser = userService.findByEmail(email);
+            }
+
+            if (currentUser == null) {
+                response.put("success", false);
+                response.put("message", "用户不存在");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // 返回用户信息（不包含密码）
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userId", currentUser.getUserId());
+            userInfo.put("name", currentUser.getName());
+            userInfo.put("phone", currentUser.getPhone());
+            userInfo.put("email", currentUser.getEmail());
+            userInfo.put("isAdmin", currentUser.getIsAdmin());
+            userInfo.put("registerTime", currentUser.getRegisterTime());
+
+            response.put("success", true);
+            response.put("data", userInfo);
+            response.put("message", "获取用户信息成功");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("获取用户配置信息时发生错误", e);
+            response.put("success", false);
+            response.put("message", "获取用户信息失败，请稍后重试");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
      * 更新用户信息
      */
     @PutMapping("/profile")

@@ -43,12 +43,6 @@ public class CinemaAdminController {
     public ResponseEntity<Map<String, Object>> getCinemaInfo(@PathVariable Integer cinemaId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // TODO: 调用 cinemaAdminService.getCinemaInfo(cinemaId)
-            // 实现思路：
-            // 1. 验证影院管理员权限
-            // 2. 获取影院基本信息
-            // 3. 返回影院详细数据
-
             Cinema cinema = cinemaAdminService.getCinemaInfo(cinemaId);
 
             response.put("success", true);

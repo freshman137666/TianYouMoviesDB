@@ -159,8 +159,8 @@ public class AuthController {
             }
 
             if (user != null) {
-                // 生成JWT token
-                String token = jwtUtil.generateToken(username, user.getUserId());
+                // 生成包含角色信息的JWT token
+                String token = jwtUtil.generateTokenWithRoles(username, user.getUserId(), user.getAdminType());
 
                 response.put("success", true);
                 response.put("message", "登录成功");
@@ -172,7 +172,7 @@ public class AuthController {
                 userInfo.put("name", user.getName());
                 userInfo.put("phone", user.getPhone());
                 userInfo.put("email", user.getEmail());
-                userInfo.put("adminType", user.getAdminType().toString());
+                userInfo.put("adminType", user.getAdminType().getValue());
                 userInfo.put("managedCinemaId", user.getManagedCinemaId());
                 userInfo.put("registerTime", user.getRegisterTime());
 

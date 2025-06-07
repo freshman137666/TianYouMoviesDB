@@ -16,6 +16,7 @@ public class Movie {
     private BigDecimal rating;
     private String releaseRegion;
     private BigDecimal basePrice;
+    private String posterUrl;
 
     // 构造方法
     public Movie() {
@@ -132,6 +133,14 @@ public class Movie {
 
     public void setBasePrice(BigDecimal basePrice) {
         this.basePrice = basePrice;
+    }
+
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
     }
 
     @Override

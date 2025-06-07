@@ -67,8 +67,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/system/**").hasAuthority("ROLE_SYSTEM_ADMIN")
                         // 影院管理员端点
                         .requestMatchers("/api/admin/cinema/**").hasAuthority("ROLE_CINEMA_ADMIN")
-                        // 通用管理员端点
-                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        // 通用管理员端点 - 允许系统管理员访问
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SYSTEM_ADMIN")
                         // 用户相关端点需要认证
                         .requestMatchers("/api/user/**").authenticated()
                         .requestMatchers("/api/orders/**").authenticated()

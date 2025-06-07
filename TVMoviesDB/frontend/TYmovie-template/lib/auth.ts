@@ -104,20 +104,28 @@ export const logout = (): void => {
 };
 
 // API请求封装，自动添加Authorization header
-export const apiRequest = async (url: string, options: RequestInit = {}): Promise<Response> => {
+export const apiRequest = async (url: string, options: RequestInit & { isFormData?: boolean } = {}): Promise<any> => {
   const token = getToken();
+  const { isFormData, ...fetchOptions } = options;
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
+  // 确保URL包含完整的后端服务器地址
+  const fullUrl = url.startsWith('http') ? url : `http://localhost:8080${url}`;
+
+  const headers: Record<string, string> = {
+    ...fetchOptions.headers as Record<string, string>,
   };
+
+  // 只有在不是FormData时才设置Content-Type
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
-    ...options,
+  const response = await fetch(fullUrl, {
+    ...fetchOptions,
     headers,
     credentials: 'include'
   });
@@ -128,7 +136,11 @@ export const apiRequest = async (url: string, options: RequestInit = {}): Promis
     throw new Error('认证失败，请重新登录');
   }
 
-  return response;
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
 };
 
 // 验证token有效性
@@ -139,11 +151,10 @@ export const validateToken = async (): Promise<boolean> => {
   }
 
   try {
-    const response = await apiRequest('http://localhost:8080/api/auth/validate', {
+    const data = await apiRequest('/api/auth/validate', {
       method: 'POST'
     });
 
-    const data = await response.json();
     return data.success;
   } catch (error) {
     console.error('Token验证失败:', error);

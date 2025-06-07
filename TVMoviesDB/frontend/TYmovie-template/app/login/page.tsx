@@ -64,9 +64,17 @@ export default function LoginPage() {
 
       if (data.success) {
         setMessage('登录成功！')
-        // 跳转到首页
+
+        // 根据用户类型跳转到不同页面
         setTimeout(() => {
-          router.push('/')
+          const user = data.user
+          if (user?.adminType === 'system') {
+            router.push('/admin/system')
+          } else if (user?.adminType === 'cinema') {
+            router.push('/admin/cinema')
+          } else {
+            router.push('/')
+          }
         }, 1000)
       } else {
         setMessage(data.message || '登录失败')
@@ -177,13 +185,14 @@ export default function LoginPage() {
               </Button>
             </div>
           </form>
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-6 text-center text-sm space-y-2">
             <p>
               还没有账号?{" "}
               <Link href="/register" className="text-red-600 hover:text-red-800">
                 立即注册
               </Link>
             </p>
+
           </div>
           <div className="mt-6">
             <div className="relative">

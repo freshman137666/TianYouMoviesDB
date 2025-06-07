@@ -61,8 +61,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                 // 如果token有效，设置Spring Security的认证
                 if (jwtUtil.validateToken(jwtToken, userDetails.getUsername())) {
+                    // 从token中获取角色信息
+                    java.util.List<String> roles = jwtUtil.getRolesFromToken(jwtToken);
+                    java.util.List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
+
+                    for (String role : roles) {
+                        authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(role));
+                    }
+
+                    // 创建认证对象
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
+                            userDetails, null, authorities);
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
 

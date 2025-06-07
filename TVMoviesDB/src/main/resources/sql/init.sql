@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS Movie (
     ) COMMENT '评分',
     release_region VARCHAR(50) NOT NULL COMMENT '制片国家/地区',
     base_price DECIMAL(10, 2) NOT NULL CHECK (base_price > 0) COMMENT '指导价格',
+    poster_url VARCHAR(255) COMMENT '电影海报URL',
     INDEX idx_movie_release (release_date)
 ) COMMENT = '电影表';
 -- 4. 用户表
